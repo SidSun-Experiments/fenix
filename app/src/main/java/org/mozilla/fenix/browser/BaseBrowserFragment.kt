@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.CallSuper
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -100,7 +101,7 @@ import org.mozilla.fenix.components.toolbar.ToolbarIntegration
 import org.mozilla.fenix.components.toolbar.ToolbarPosition
 import org.mozilla.fenix.downloads.DownloadService
 import org.mozilla.fenix.downloads.DynamicDownloadDialog
-import org.mozilla.fenix.ext.accessibilityManager
+import org.mozilla.fenix.ext.addAccessibilityStateChangeListener
 import org.mozilla.fenix.ext.breadcrumb
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.enterToImmersiveMode
@@ -125,8 +126,7 @@ import java.lang.ref.WeakReference
 @ExperimentalCoroutinesApi
 @Suppress("TooManyFunctions", "LargeClass")
 abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, SessionManager.Observer,
-    OnBackLongPressedListener, AccessibilityManager.AccessibilityStateChangeListener {
-
+    OnBackLongPressedListener {
     private lateinit var browserFragmentStore: BrowserFragmentStore
     private lateinit var browserAnimator: BrowserAnimator
     private lateinit var components: Components
@@ -204,7 +204,12 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Session
 
     final override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         browserInitialized = initializeUI(view) != null
-        requireContext().accessibilityManager.addAccessibilityStateChangeListener(this)
+        view.context.getSystemService<AccessibilityManager>()?.addAccessibilityStateChangeListener(
+            viewLifecycleOwner,
+            AccessibilityManager.AccessibilityStateChangeListener { enabled ->
+                _browserToolbarView?.setScrollFlags(enabled)
+            }
+        )
     }
 
     private val homeViewModel: HomeScreenViewModel by activityViewModels {
@@ -1157,7 +1162,6 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Session
             message = "onDestroyView()"
         )
 
-        requireContext().accessibilityManager.removeAccessibilityStateChangeListener(this)
         _browserToolbarView = null
         _browserInteractor = null
     }
@@ -1189,11 +1193,5 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Session
         private const val REQUEST_CODE_APP_PERMISSIONS = 3
 
         private const val LOADING_PROGRESS_COMPLETE = 100
-    }
-
-    override fun onAccessibilityStateChanged(enabled: Boolean) {
-        if (_browserToolbarView != null) {
-            browserToolbarView.setScrollFlags(enabled)
-        }
     }
 }

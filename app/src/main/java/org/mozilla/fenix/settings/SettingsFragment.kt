@@ -38,7 +38,6 @@ import org.mozilla.fenix.ext.application
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.getPreferenceKey
 import org.mozilla.fenix.ext.metrics
-import org.mozilla.fenix.ext.navigateToNotificationsSettings
 import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.ext.showToolbar
@@ -278,7 +277,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 SettingsFragmentDirections.actionSettingsFragmentToDeleteBrowsingDataOnQuitFragment()
             }
             resources.getString(R.string.pref_key_notifications) -> {
-                context?.navigateToNotificationsSettings()
+                context?.let {
+                    it.startActivity(notificationsSettingsIntent(it))
+                }
                 null
             }
             resources.getString(R.string.pref_key_customize) -> {
