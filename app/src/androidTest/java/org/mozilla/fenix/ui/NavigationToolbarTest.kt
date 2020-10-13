@@ -4,6 +4,7 @@
 
 package org.mozilla.fenix.ui
 
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import okhttp3.mockwebserver.MockWebServer
@@ -15,6 +16,8 @@ import org.junit.Test
 import org.mozilla.fenix.helpers.AndroidAssetDispatcher
 import org.mozilla.fenix.helpers.HomeActivityTestRule
 import org.mozilla.fenix.helpers.TestAssetHelper
+import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
+import org.mozilla.fenix.helpers.UriIdlingResource
 import org.mozilla.fenix.ui.robots.navigationToolbar
 
 /**
@@ -30,6 +33,7 @@ import org.mozilla.fenix.ui.robots.navigationToolbar
 class NavigationToolbarTest {
     private val mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     private lateinit var mockWebServer: MockWebServer
+    private lateinit var uriLoadedIdlingResource: UriIdlingResource
 
     /* ktlint-disable no-blank-line-before-rbrace */ // This imposes unreadable grouping.
     @get:Rule
@@ -56,17 +60,23 @@ class NavigationToolbarTest {
         navigationToolbar {
         }.enterURLAndEnterToBrowser(defaultWebPage.url) {
             mDevice.waitForIdle()
+            verifyPageContent(defaultWebPage.content)
         }.openNavigationToolbar {
         }.enterURLAndEnterToBrowser(nextWebPage.url) {
             mDevice.waitForIdle()
-            verifyUrl(nextWebPage.url.toString())
+            verifyPageContent(nextWebPage.content)
+            //verifyUrl(nextWebPage.url.toString())
             mDevice.pressBack()
-            mDevice.waitForIdle()
-            verifyUrl(defaultWebPage.url.toString())
+            // mDevice.waitForIdle()
+            uriLoadedIdlingResource = UriIdlingResource(defaultWebPage.url.toString(), waitingTime)
+            IdlingRegistry.getInstance().register(uriLoadedIdlingResource)
+            verifyPageContent(defaultWebPage.content)
+            //verifyUrl(defaultWebPage.url.toString())
+            IdlingRegistry.getInstance().unregister(uriLoadedIdlingResource)
         }
     }
 
-    @Ignore("Flaky test: https://github.com/mozilla-mobile/fenix/issues/12894")
+    // @Ignore("Flaky test: https://github.com/mozilla-mobile/fenix/issues/12894")
     @Test
     fun goForwardTest() {
         val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
@@ -80,8 +90,11 @@ class NavigationToolbarTest {
             mDevice.waitForIdle()
             verifyUrl(nextWebPage.url.toString())
             mDevice.pressBack()
-            mDevice.waitForIdle()
+            uriLoadedIdlingResource = UriIdlingResource(defaultWebPage.url.toString(), waitingTime)
+            IdlingRegistry.getInstance().register(uriLoadedIdlingResource)
+            // mDevice.waitForIdle()
             verifyUrl(defaultWebPage.url.toString())
+            IdlingRegistry.getInstance().unregister(uriLoadedIdlingResource)
         }
 
         // Re-open the three-dot menu for verification
@@ -90,7 +103,10 @@ class NavigationToolbarTest {
             verifyThreeDotMenuExists()
             verifyForwardButton()
         }.goForward {
+            uriLoadedIdlingResource = UriIdlingResource(nextWebPage.url.toString(), waitingTime)
+            IdlingRegistry.getInstance().register(uriLoadedIdlingResource)
             verifyUrl(nextWebPage.url.toString())
+            IdlingRegistry.getInstance().unregister(uriLoadedIdlingResource)
         }
     }
 
