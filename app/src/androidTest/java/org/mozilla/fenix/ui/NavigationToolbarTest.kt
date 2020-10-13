@@ -59,14 +59,14 @@ class NavigationToolbarTest {
         }.openNavigationToolbar {
         }.enterURLAndEnterToBrowser(nextWebPage.url) {
             mDevice.waitForIdle()
-            verifyUrl(nextWebPage.url.toString())
+            verifyPageContent(nextWebPage.content)
             mDevice.pressBack()
             mDevice.waitForIdle()
-            verifyUrl(defaultWebPage.url.toString())
+            verifyPageContent(defaultWebPage.content)
         }
     }
 
-    @Ignore("Flaky test: https://github.com/mozilla-mobile/fenix/issues/12894")
+    // @Ignore("Flaky test: https://github.com/mozilla-mobile/fenix/issues/12894")
     @Test
     fun goForwardTest() {
         val defaultWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
@@ -81,7 +81,7 @@ class NavigationToolbarTest {
             verifyUrl(nextWebPage.url.toString())
             mDevice.pressBack()
             mDevice.waitForIdle()
-            verifyUrl(defaultWebPage.url.toString())
+            verifyPageContent(defaultWebPage.content)
         }
 
         // Re-open the three-dot menu for verification
@@ -90,7 +90,8 @@ class NavigationToolbarTest {
             verifyThreeDotMenuExists()
             verifyForwardButton()
         }.goForward {
-            verifyUrl(nextWebPage.url.toString())
+            mDevice.waitForIdle()
+            verifyPageContent(nextWebPage.content)
         }
     }
 
