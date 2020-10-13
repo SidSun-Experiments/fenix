@@ -78,7 +78,7 @@ class NavigationToolbarTest {
         }.openNavigationToolbar {
         }.enterURLAndEnterToBrowser(nextWebPage.url) {
             mDevice.waitForIdle()
-            verifyUrl(nextWebPage.url.toString())
+            verifyPageContent(nextWebPage.content)
             mDevice.pressBack()
             mDevice.waitForIdle()
             verifyPageContent(defaultWebPage.content)
