@@ -77,20 +77,14 @@ class FenixTabsAdapter(
         holder.tab?.let { tab ->
             showCheckedIfSelected(tab, holder.itemView)
 
-            val tabIsPrivate =
-                context.components.core.sessionManager.findSessionById(tab.id)?.private == true
-            if (!tabIsPrivate) {
-                holder.itemView.setOnLongClickListener {
-                    if (mode is TabTrayDialogFragmentState.Mode.Normal) {
-                        context.metrics.track(Event.CollectionTabLongPressed)
-                        tabTrayInteractor?.onAddSelectedTab(
+            holder.itemView.setOnLongClickListener {
+                if (mode is TabTrayDialogFragmentState.Mode.Normal) {
+                    context.metrics.track(Event.CollectionTabLongPressed)
+                    tabTrayInteractor?.onAddSelectedTab(
                             tab
-                        )
-                    }
-                    true
+                    )
                 }
-            } else {
-                holder.itemView.setOnLongClickListener(null)
+                true
             }
 
             holder.itemView.setOnClickListener {
